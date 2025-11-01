@@ -6,6 +6,7 @@ CloudiskServer
 
 # Temporary files
 tmp/
+.vscode/
 
 # Ignore all files in tmp directory
 tmp/*

@@ -136,7 +136,7 @@ void CloudiskServer::loadUserLoginModule()
             string encodedPassword(crypt(password.c_str(), salt.c_str()));
             cout << "mi wen:" << encodedPassword << endl;
             //3. 从数据库MySQL中读取用户信息进行登录验证
-            string mysqlurl("mysql://root:123@localhost");
+            string mysqlurl("mysql://root:123450@localhost");
             auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, 
             [=](WFMySQLTask * mysqltask){
                 //0. 对任务的状态进行检测
@@ -172,12 +172,22 @@ void CloudiskServer::loadUserLoginModule()
                         string tokenStr = token.genToken();
                         //3.2构造一个JSON对象，发送给客户端
                         //using Json = nlohmann::json;
-                        Json msg;
-                        Json data;
-                        data["Token"] = tokenStr;
-                        data["Username"] = username;
-                        data["Location"] = "/static/view/home.html";//跳转到用户中心页面
-                        msg["data"] = data;
+                        // Json msg;
+                        // Json data;
+                        // data["Token"] = tokenStr;
+                        // data["Username"] = username;
+                        // data["Location"] = "/static/view/home.html";//跳转到用户中心页面
+                        // msg["data"] = data;
+                        // 使用Object构造器直接初始化
+                        wfrest::Json data = wfrest::Json::Object{
+                            {"Token", tokenStr},
+                            {"Username", username},
+                            {"Location", "/static/view/home.html"}
+                        };
+
+                        wfrest::Json msg = wfrest::Json::Object{
+                            {"data", data}
+                        };
                         resp->String(msg.dump());//序列化之后，发送给客户端
 
                         //3.3 将Token保存到数据库中
@@ -212,7 +222,7 @@ void CloudiskServer::loadUserInfoModule()
         cout << "username:" << username << endl;
         cout << "token:" << tokenStr << endl;
 
-        string mysqlurl("mysql://root:123@localhost");
+        string mysqlurl("mysql://root:123450@localhost");
         auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, 
         [=](WFMySQLTask * mysqltask){
             //...检测
@@ -225,11 +235,19 @@ void CloudiskServer::loadUserInfoModule()
                 cursor.fetch_all(matrix);
                 string signupAt = matrix[0][0].as_string();
                 //using Json = nlohmann::json;
-                Json msg;
-                Json data;
-                data["Username"] = username;
-                data["SignupAt"] = signupAt;
-                msg["data"] = data;
+                // Json msg;
+                // Json data;
+                // data["Username"] = username;
+                // data["SignupAt"] = signupAt;
+                // msg["data"] = data;
+                // 分步构造版本：
+                wfrest::Json data = wfrest::Json::Object{
+                    {"Username", username},
+                    {"SignupAt", signupAt}
+                };
+                wfrest::Json msg = wfrest::Json::Object{
+                    {"data", data}
+                };
                 resp->String(msg.dump());
             } else {
                 //没有读取到正确的信息
@@ -255,7 +273,7 @@ void CloudiskServer::loadFileQueryModule()
         //2. 解析请求： 消息体
         string limitCnt = req->form_kv()["limit"];
 
-        string mysqlurl("mysql://root:123@localhost");
+        string mysqlurl("mysql://root:123450@localhost");
         auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, 
         [=](WFMySQLTask * mysqltask){
             //...检测
@@ -324,7 +342,7 @@ void CloudiskServer::loadFileUploadModule()
             string filehash = hash.sha1();
             cout << "filehash:" << filehash << endl;
             //6.将文件相关信息写入数据库MySQL中
-            string mysqlurl("mysql://root:123@localhost");
+            string mysqlurl("mysql://root:123450@localhost");
             auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, nullptr);
             string sql("INSERT INTO cloudisk.tbl_user_file(user_name,file_sha1,file_size,file_name)VALUES('");
             sql += username + "','" + filehash + "', " + std::to_string(content.size()) + ",'" + filename + "')";
