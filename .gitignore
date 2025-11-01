@@ -1,0 +1,11 @@
+# Executable files
+CloudiskServer
+
+# Object files
+*.o
+
+# Temporary files
+tmp/
+
+# Ignore all files in tmp directory
+tmp/*
