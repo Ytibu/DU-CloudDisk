@@ -285,9 +285,9 @@ void CloudiskServer::loadFileQueryModule()
                 vector<vector<MySQLCell>> matrix;
                 cursor.fetch_all(matrix);
                 //using Json = nlohmann::json;
-                Json msgArr;
+                Json msgArr = Json::Array{};
                 for(size_t i = 0; i < matrix.size(); ++i) {
-                    Json row;
+                    Json row = Json::Object{};
                     row["FileHash"] = matrix[i][0].as_string();
                     row["FileName"] = matrix[i][1].as_string();
                     row["FileSize"] = matrix[i][2].as_ulonglong();
@@ -361,7 +361,7 @@ void CloudiskServer::loadFileDownloadModule(){
         
         //将下载业务从服务器中分离出去，之后只需要产生一个下载链接就可以了
         //这要求我们还需要去部署一个下载服务器
-        string downloadURL = "http://192.168.190.128:8080/" + filename;
+        string downloadURL = "http://192.168.100.100:8080/" + filename;
         resp->String(downloadURL);
     });
 }
