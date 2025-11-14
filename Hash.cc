@@ -1,5 +1,6 @@
 #include "Hash.h"
 #include "unixHeader.h"
+#include "MyLogger.hpp"
 
 #include <openssl/sha.h>
 #include <iostream>
@@ -12,9 +13,11 @@ using std::string;
 std::string Hash::sha1() const
 {
     int fd = open(_filename.c_str(), O_RDONLY);
-    cout << "_filename:" << _filename << endl;
+    //cout << "_filename:" << _filename << endl;
+    LOG_INFO("_filename:%s", _filename.c_str());
     if(fd < 0) {
-        perror("open");
+        //perror("open");
+        LOG_ERROR("open %s failed", _filename.c_str());
         return string();
     }
     char buff[1024] = {0};

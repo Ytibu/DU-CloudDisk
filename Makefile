@@ -1,11 +1,11 @@
 INCLUDES:=./  ./include
 SRCS:=$(wildcard *.cc) 
-LIBS:=  -lwfrest -lworkflow -lssl -lcrypto -lcrypt
+LIBS:=  -lwfrest -lworkflow -lssl -lcrypto -lcrypt -llog4cpp
 OBJS:=$(patsubst %.cc, %.o, $(SRCS))
 SERVER:= CloudiskServer
 
 # 目标 : 依赖
-$(SERVER): main.o CloudiskServer.o Token.o Hash.o
+$(SERVER): main.o CloudiskServer.o Token.o Hash.o MyLogger.o
 	g++ $^ -o $@ $(LIBS) $(addprefix -I, $(INCLUDES)) -g
 
 %.o:%.cc
@@ -14,10 +14,10 @@ $(SERVER): main.o CloudiskServer.o Token.o Hash.o
 HASH:=testHash
 TOKEN:=testToken
 
-$(HASH): Hash.o testHash.o
+$(HASH): Hash.o testHash.o MyLogger.o
 	g++ $^ -o $@ $(LIBS) $(addprefix -I, $(INCLUDES)) -g
 
-$(TOKEN): Token.o testToken.o
+$(TOKEN): Token.o testToken.o MyLogger.o
 	g++ $^ -o $@ $(LIBS) $(addprefix -I, $(INCLUDES)) -g
 
 echo:

@@ -1,5 +1,6 @@
 #include "Token.h"
 #include "unixHeader.h"
+#include "MyLogger.hpp"
 
 #include <openssl/md5.h>
 
@@ -27,5 +28,7 @@ string Token::genToken() const
             ptm->tm_hour,
             ptm->tm_min,
             ptm->tm_sec);
+    // 记录token生成事件
+    LOG_INFO("Generated token for user %s", _username.c_str());
     return result + buff;
 }
