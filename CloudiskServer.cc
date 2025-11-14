@@ -2,11 +2,10 @@
 #include "Token.h"
 #include "Hash.h"
 #include "unixHeader.h"
-
+#include "MyLogger.hpp"
 #include <workflow/MySQLMessage.h>
 #include <workflow/MySQLResult.h>
 #include <wfrest/Json.h>
-
 #include <iostream>
 
 using namespace wfrest;
@@ -76,12 +75,14 @@ void CloudiskServer::loadUserRegisterModule()
             auto formKV = req->form_kv();
             string username = formKV["username"];
             string password = formKV["password"];
-            cout << "username:" << username << endl;
-            cout << "password:" << password << endl;
+            // cout << "username:" << username << endl;
+            // cout << "password:" << password << endl;
+            LOG_INFO("username:%s, password:%s\n", username.c_str(), password.c_str());
             //2. 对密码进行加密
             string salt("12345678");//这里应该是随机生成
             string encodedPassword(crypt(password.c_str(), salt.c_str()));
-            cout << "mi wen:" << encodedPassword << endl;
+            LOG_INFO("encodedPassword:%s",  encodedPassword);
+            //cout << "mi wen:" << encodedPassword << endl;
             //将用户信息存储到数据库MySQL中
             string mysqlurl("mysql://root:123450@localhost");
             auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, 
@@ -90,14 +91,16 @@ void CloudiskServer::loadUserRegisterModule()
                 int state = mysqltask->get_state();
                 int error = mysqltask->get_error();
                 if(state != WFT_STATE_SUCCESS) {
-                    printf("%s\n", WFGlobal::get_error_string(state, error));
+                    //printf("%s\n", WFGlobal::get_error_string(state, error));
+                    LOG_WARN("%s\n", WFGlobal::get_error_string(state, error));
                     return;
                 }
                 //1. 检测SQL语句是否存在语法错误
                 auto mysqlResp = mysqltask->get_resp();
                 if(mysqlResp->get_packet_type() == MYSQL_PACKET_ERROR) {
-                    printf("ERROR %d: %s\n", mysqlResp->get_error_code(),
-                           mysqlResp->get_error_msg().c_str());
+                    // printf("ERROR %d: %s\n", mysqlResp->get_error_code(),
+                    //        mysqlResp->get_error_msg().c_str());
+                    LOG_ERROR("ERROR %d: %s\n", mysqlResp->get_error_code(),mysqlResp->get_error_msg().c_str());
                     resp->String("Singup Failed");
                     return;
                 }
@@ -106,14 +109,16 @@ void CloudiskServer::loadUserRegisterModule()
                 if(cursor.get_cursor_status() == MYSQL_STATUS_OK) {
                     //2. 成功写入数据库了
                     printf("Query OK. %llu row affected.\n",cursor.get_affected_rows());
+                    LOG_INFO("Query OK. %llu row affected.",cursor.get_affected_rows());
                     resp->String("SUCCESS");   
                 } else {
                     resp->String("Singup Failed");
                 }
             });
-            string sql("INSERT INTO cloudisk.tbl_user(user_name, user_pwd) VALUES('");
+            string sql("INSERT INTO CloudDisk.tbl_user(user_name, user_pwd) VALUES('");
             sql += username + "', '" + encodedPassword + "')";
-            cout << "sql:\n" << sql << endl;
+            //cout << "sql:\n" << sql << endl;
+            LOG_INFO("sql:\n", sql);
             mysqlTask->get_req()->set_query(sql);
             series->push_back(mysqlTask);
         }
@@ -129,12 +134,14 @@ void CloudiskServer::loadUserLoginModule()
             auto formKV = req->form_kv();
             string username = formKV["username"];
             string password = formKV["password"];
-            cout << "username:" << username << endl;
-            cout << "password:" << password << endl;
+            // cout << "username:" << username << endl;
+            // cout << "password:" << password << endl;
+            LOG_INFO("username:%s, password:%s\n", username.c_str(), password.c_str());
             //2. 对密码进行加密
             string salt("12345678");//这里应该是随机生成
             string encodedPassword(crypt(password.c_str(), salt.c_str()));
-            cout << "mi wen:" << encodedPassword << endl;
+            //cout << "mi wen:" << encodedPassword << endl;
+            LOG_INFO("encodedPassword:%s",  encodedPassword);
             //3. 从数据库MySQL中读取用户信息进行登录验证
             string mysqlurl("mysql://root:123450@localhost");
             auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, 
@@ -143,14 +150,17 @@ void CloudiskServer::loadUserLoginModule()
                 int state = mysqltask->get_state();
                 int error = mysqltask->get_error();
                 if(state != WFT_STATE_SUCCESS) {
-                    printf("%s\n", WFGlobal::get_error_string(state, error));
+                    //printf("%s\n", WFGlobal::get_error_string(state, error));
+                    LOG_ERROR("%s\n",WFGlobal::get_error_string(state, error));
                     return;
                 }
                 //1. 检测SQL语句是否存在语法错误
                 auto mysqlResp = mysqltask->get_resp();
                 if(mysqlResp->get_packet_type() == MYSQL_PACKET_ERROR) {
-                    printf("ERROR %d: %s\n", mysqlResp->get_error_code(),
-                           mysqlResp->get_error_msg().c_str());
+                    // printf("ERROR %d: %s\n", mysqlResp->get_error_code(),
+                    //        mysqlResp->get_error_msg().c_str());
+                    LOG_ERROR("ERROR %d: %s", mysqlResp->get_error_code(),
+                                  mysqlResp->get_error_msg().c_str());
                     resp->String("Singup Failed");
                     return;
                 }
@@ -159,13 +169,15 @@ void CloudiskServer::loadUserLoginModule()
                 if(cursor.get_cursor_status() == MYSQL_STATUS_OK) {
                     //2. 成功写入数据库了
                     printf("Query OK. %llu row affected.\n",cursor.get_affected_rows());
+                    LOG_INFO("Query OK. %llu row affected.",cursor.get_affected_rows());
                     resp->String("Login Failed");   
                 } else if(cursor.get_cursor_status() == MYSQL_STATUS_GET_RESULT){
                     //3. 读取数据
                     vector<vector<MySQLCell>> matrix;
                     cursor.fetch_all(matrix);
                     string M = matrix[0][0].as_string();
-                    cout << "M:" << M << endl;
+                    //cout << "M:" << M << endl;
+                    LOG_INFO("M:", M);
                     if(encodedPassword == M) {
                         //3.1登录成功的情况, 生成Token信息
                         Token token(username, salt);
@@ -192,7 +204,7 @@ void CloudiskServer::loadUserLoginModule()
 
                         //3.3 将Token保存到数据库中
                         auto nextTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, nullptr);
-                        string sql("REPLACE INTO cloudisk.tbl_user_token(user_name, user_token)VALUES('");
+                        string sql("REPLACE INTO CloudDisk.tbl_user_token(user_name, user_token)VALUES('");
                         sql += username + "', '" + tokenStr + "')";
                         nextTask->get_req()->set_query(sql);
                         series->push_back(nextTask);
@@ -203,9 +215,10 @@ void CloudiskServer::loadUserLoginModule()
                     }
                 }
             });
-            string sql("select user_pwd from cloudisk.tbl_user where user_name = '");
+            string sql("select user_pwd from CloudDisk.tbl_user where user_name = '");
             sql += username + "' limit 1";
-            cout << "sql:\n" << sql << endl;
+            //cout << "sql:\n" << sql << endl;
+            LOG_INFO("sql:\n %s",sql);
             mysqlTask->get_req()->set_query(sql);
             series->push_back(mysqlTask);
         }
@@ -219,8 +232,9 @@ void CloudiskServer::loadUserInfoModule()
         //1. 解析请求
         string username = req->query("username");
         string tokenStr = req->query("token");
-        cout << "username:" << username << endl;
-        cout << "token:" << tokenStr << endl;
+        // cout << "username:" << username << endl;
+        // cout << "token:" << tokenStr << endl;
+        LOG_INFO("username:%s, token:%s", username.c_str(), tokenStr.c_str());
 
         string mysqlurl("mysql://root:123450@localhost");
         auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, 
@@ -254,7 +268,7 @@ void CloudiskServer::loadUserInfoModule()
                 resp->String("error");
             }
         });
-        string sql("select signup_at from cloudisk.tbl_user where user_name = '");
+        string sql("select signup_at from CloudDisk.tbl_user where user_name = '");
         sql += username + "'";
         mysqlTask->get_req()->set_query(sql);
         series->push_back(mysqlTask);
@@ -268,8 +282,9 @@ void CloudiskServer::loadFileQueryModule()
         //1. 解析请求: 查询词
         string username = req->query("username");
         string tokenStr = req->query("token");
-        cout << "username:" << username << endl;
-        cout << "token:" << tokenStr << endl;
+        // cout << "username:" << username << endl;
+        // cout << "token:" << tokenStr << endl;
+        LOG_INFO("username:%s, token:%s\n", username.c_str(), tokenStr.c_str());
         //2. 解析请求： 消息体
         string limitCnt = req->form_kv()["limit"];
 
@@ -301,9 +316,10 @@ void CloudiskServer::loadFileQueryModule()
                 resp->String("error");
             }
         });
-        string sql("select file_sha1, file_name, file_size, upload_at, last_update from cloudisk.tbl_user_file where user_name = '");
+        string sql("select file_sha1, file_name, file_size, upload_at, last_update from CloudDisk.tbl_user_file where user_name = '");
         sql += username + "' limit " + limitCnt;
-        cout << "\nsql:\n"  << sql << endl;
+        //cout << "\nsql:\n"  << sql << endl;
+        LOG_INFO("\nsql:\n",sql);
         mysqlTask->get_req()->set_query(sql);
         series->push_back(mysqlTask);
     });    
@@ -317,8 +333,9 @@ void CloudiskServer::loadFileUploadModule()
         //1. 解析请求
         string username = req->query("username");
         string tokenStr = req->query("token");
-        cout << "username:" << username << endl;
-        cout << "token:" << tokenStr << endl;
+        // cout << "username:" << username << endl;
+        // cout << "token:" << tokenStr << endl;
+        LOG_INFO("username:%s, token:%s\n", username.c_str(), tokenStr.c_str());
         //2. 对token进行验证
         //3. 解析请求：消息体
         if(req->content_type() == MULTIPART_FORM_DATA) {
@@ -331,6 +348,7 @@ void CloudiskServer::loadFileUploadModule()
             int fd = open(filepath.c_str(), O_CREAT|O_RDWR, 0664);
             if(fd < 0) {
                 perror("open");
+                LOG_ERROR("open %s error", filepath.c_str());
                 return;
             }
             write(fd, content.c_str(), content.size());
@@ -340,13 +358,15 @@ void CloudiskServer::loadFileUploadModule()
             //5. 生成SHA1值
             Hash hash(filepath);
             string filehash = hash.sha1();
-            cout << "filehash:" << filehash << endl;
+            //cout << "filehash:" << filehash << endl;
+            LOG_INFO("filehash:%s", filehash.c_str());
             //6.将文件相关信息写入数据库MySQL中
             string mysqlurl("mysql://root:123450@localhost");
             auto mysqlTask = WFTaskFactory::create_mysql_task(mysqlurl, 1, nullptr);
             string sql("INSERT INTO cloudisk.tbl_user_file(user_name,file_sha1,file_size,file_name)VALUES('");
             sql += username + "','" + filehash + "', " + std::to_string(content.size()) + ",'" + filename + "')";
-            cout << "\nsql:\n" << sql << endl;
+            //cout << "\nsql:\n" << sql << endl;
+            LOG_INFO("\nsql:\n",sql);
             mysqlTask->get_req()->set_query(sql);
             series->push_back(mysqlTask);
         }
@@ -357,7 +377,8 @@ void CloudiskServer::loadFileUploadModule()
 void CloudiskServer::loadFileDownloadModule(){
     _httpserver.GET("/file/downloadurl", [](const HttpReq *req, HttpResp * resp){
         string filename = req->query("filename");
-        cout << "filename: " << filename << endl;
+        //cout << "filename: " << filename << endl;
+        LOG_INFO("filename: %s", filename);
         
         //将下载业务从服务器中分离出去，之后只需要产生一个下载链接就可以了
         //这要求我们还需要去部署一个下载服务器
