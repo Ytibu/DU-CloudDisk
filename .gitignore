@@ -10,3 +10,6 @@ tmp/
 
 # Ignore all files in tmp directory
 tmp/*
+
+#日志文件
+*.log
