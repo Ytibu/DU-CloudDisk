@@ -7,6 +7,7 @@
 #include <workflow/MySQLResult.h>
 #include <wfrest/Json.h>
 #include <iostream>
+#include <cerrno>
 
 using namespace wfrest;
 using std::string;
@@ -21,7 +22,7 @@ void CloudiskServer::start(unsigned short port)
         _waitGroup.wait();
         _httpserver.stop();
     } else {
-        printf("Cloudisk Server Start Failed!\n");
+        LOG_ERROR("Cloudisk Server Start Failed!");
     }
 }
 
@@ -108,9 +109,8 @@ void CloudiskServer::loadUserRegisterModule()
                 MySQLResultCursor cursor(mysqlResp);
                 if(cursor.get_cursor_status() == MYSQL_STATUS_OK) {
                     //2. 成功写入数据库了
-                    printf("Query OK. %llu row affected.\n",cursor.get_affected_rows());
                     LOG_INFO("Query OK. %llu row affected.",cursor.get_affected_rows());
-                    resp->String("SUCCESS");   
+                    resp->String("SUCCESS");
                 } else {
                     resp->String("Singup Failed");
                 }
@@ -118,7 +118,7 @@ void CloudiskServer::loadUserRegisterModule()
             string sql("INSERT INTO CloudDisk.tbl_user(user_name, user_pwd) VALUES('");
             sql += username + "', '" + encodedPassword + "')";
             //cout << "sql:\n" << sql << endl;
-            LOG_INFO("sql:\n", sql);
+            LOG_INFO("sql:\n%s", sql.c_str());
             mysqlTask->get_req()->set_query(sql);
             series->push_back(mysqlTask);
         }
@@ -168,16 +168,15 @@ void CloudiskServer::loadUserLoginModule()
                 MySQLResultCursor cursor(mysqlResp);
                 if(cursor.get_cursor_status() == MYSQL_STATUS_OK) {
                     //2. 成功写入数据库了
-                    printf("Query OK. %llu row affected.\n",cursor.get_affected_rows());
                     LOG_INFO("Query OK. %llu row affected.",cursor.get_affected_rows());
-                    resp->String("Login Failed");   
+                    resp->String("Login Failed");
                 } else if(cursor.get_cursor_status() == MYSQL_STATUS_GET_RESULT){
                     //3. 读取数据
                     vector<vector<MySQLCell>> matrix;
                     cursor.fetch_all(matrix);
                     string M = matrix[0][0].as_string();
                     //cout << "M:" << M << endl;
-                    LOG_INFO("M:", M);
+                    LOG_INFO("M: %s", M.c_str());
                     if(encodedPassword == M) {
                         //3.1登录成功的情况, 生成Token信息
                         Token token(username, salt);
@@ -218,7 +217,7 @@ void CloudiskServer::loadUserLoginModule()
             string sql("select user_pwd from CloudDisk.tbl_user where user_name = '");
             sql += username + "' limit 1";
             //cout << "sql:\n" << sql << endl;
-            LOG_INFO("sql:\n %s",sql);
+            LOG_INFO("sql:\n %s", sql.c_str());
             mysqlTask->get_req()->set_query(sql);
             series->push_back(mysqlTask);
         }
@@ -319,7 +318,7 @@ void CloudiskServer::loadFileQueryModule()
         string sql("select file_sha1, file_name, file_size, upload_at, last_update from CloudDisk.tbl_user_file where user_name = '");
         sql += username + "' limit " + limitCnt;
         //cout << "\nsql:\n"  << sql << endl;
-        LOG_INFO("\nsql:\n",sql);
+        LOG_INFO("\nsql:\n%s", sql.c_str());
         mysqlTask->get_req()->set_query(sql);
         series->push_back(mysqlTask);
     });    
@@ -347,8 +346,7 @@ void CloudiskServer::loadFileUploadModule()
             string filepath = "tmp/" + filename;
             int fd = open(filepath.c_str(), O_CREAT|O_RDWR, 0664);
             if(fd < 0) {
-                perror("open");
-                LOG_ERROR("open %s error", filepath.c_str());
+                LOG_ERROR("open %s failed: %s", filepath.c_str(), strerror(errno));
                 return;
             }
             write(fd, content.c_str(), content.size());
@@ -366,7 +364,7 @@ void CloudiskServer::loadFileUploadModule()
             string sql("INSERT INTO cloudisk.tbl_user_file(user_name,file_sha1,file_size,file_name)VALUES('");
             sql += username + "','" + filehash + "', " + std::to_string(content.size()) + ",'" + filename + "')";
             //cout << "\nsql:\n" << sql << endl;
-            LOG_INFO("\nsql:\n",sql);
+            LOG_INFO("\nsql:\n%s", sql.c_str());
             mysqlTask->get_req()->set_query(sql);
             series->push_back(mysqlTask);
         }
@@ -378,7 +376,7 @@ void CloudiskServer::loadFileDownloadModule(){
     _httpserver.GET("/file/downloadurl", [](const HttpReq *req, HttpResp * resp){
         string filename = req->query("filename");
         //cout << "filename: " << filename << endl;
-        LOG_INFO("filename: %s", filename);
+        LOG_INFO("filename: %s", filename.c_str());
         
         //将下载业务从服务器中分离出去，之后只需要产生一个下载链接就可以了
         //这要求我们还需要去部署一个下载服务器

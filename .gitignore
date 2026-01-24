@@ -1,11 +1,12 @@
 # Executable files
-CloudiskServer
+bin/
 
 # Object files
 *.o
 
 # Temporary files
 tmp/
+log/
 .vscode/
 
 # Ignore all files in tmp directory

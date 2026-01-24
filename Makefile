@@ -4,27 +4,31 @@ LIBS:=  -lwfrest -lworkflow -lssl -lcrypto -lcrypt -llog4cpp
 
 # 提取src目录下的源文件并映射到build目录下的.o文件
 BUILD_DIR:=build
+BIN_DIR:=bin
 SOURCES:=$(wildcard src/*.cc)
 OBJECTS:=$(SOURCES:src/%.cc=$(BUILD_DIR)/%.o)
-
-SERVER:= CloudiskServer
+SERVER:= $(BIN_DIR)/CloudiskServer
 
 # 主程序目标
-$(SERVER): $(OBJECTS)
+$(SERVER): $(OBJECTS) | prepare_bin
 	g++ $^ -o $@ $(LIBS) -g
+
+# 创建bin目录（如果不存在）
+prepare_bin:
+	@mkdir -p $(BIN_DIR)
 
 # 编译src目录下的源文件到build目录
 $(BUILD_DIR)/%.o: src/%.cc
 	g++ -c $< -o $@ $(LIBS) $(addprefix -I, $(INCLUDES)) -g
 
 # 定义测试目标
-HASH:=testHash
-TOKEN:=testToken
+HASH:= $(BIN_DIR)/testHash
+TOKEN:= $(BIN_DIR)/testToken
 
-$(HASH): $(BUILD_DIR)/Hash.o $(BUILD_DIR)/testHash.o $(BUILD_DIR)/MyLogger.o
+$(HASH): $(BUILD_DIR)/Hash.o $(BUILD_DIR)/testHash.o $(BUILD_DIR)/MyLogger.o | prepare_bin
 	g++ $^ -o $@ $(LIBS) $(addprefix -I, $(INCLUDES)) -g
 
-$(TOKEN): $(BUILD_DIR)/Token.o $(BUILD_DIR)/testToken.o $(BUILD_DIR)/MyLogger.o
+$(TOKEN): $(BUILD_DIR)/Token.o $(BUILD_DIR)/testToken.o $(BUILD_DIR)/MyLogger.o | prepare_bin
 	g++ $^ -o $@ $(LIBS) $(addprefix -I, $(INCLUDES)) -g
 
 # 编译测试文件
@@ -42,7 +46,7 @@ echo:
 
 # 清理构建文件
 clean:
-	rm -rf $(BUILD_DIR)/*.o $(SERVER) $(HASH) $(TOKEN)
+	rm -rf $(BUILD_DIR)/*.o $(BIN_DIR)/*
 
 # 创建build目录（如果不存在）
 prepare:

@@ -13,13 +13,6 @@ using std::string;
  * 宏定义：日志打印宏定义，方便调用
  */
 
-
-#define ADD_PREFIX(message) \
-    ("[" + std::string(__FILE__) + \
-    " :: " + std::string(__FUNCTION__) + \
-    " :: " + std::to_string(__LINE__) + "]" + \
-    " : "  + std::string(message) )
-
 inline std::string format_message(const char* format, ...) {
     va_list args;
     va_start(args, format);

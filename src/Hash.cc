@@ -4,6 +4,7 @@
 
 #include <openssl/sha.h>
 #include <iostream>
+#include <cerrno>
 using std::cout;
 using std::endl;
 using std::string;
@@ -16,8 +17,7 @@ std::string Hash::sha1() const
     //cout << "_filename:" << _filename << endl;
     LOG_INFO("_filename:%s", _filename.c_str());
     if(fd < 0) {
-        //perror("open");
-        LOG_ERROR("open %s failed", _filename.c_str());
+        LOG_ERROR("open %s failed: %s", _filename.c_str(), strerror(errno));
         return string();
     }
     char buff[1024] = {0};
