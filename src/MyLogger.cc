@@ -21,10 +21,15 @@ MyLogger::MyLogger()
     auto appenderOut = new log4cpp::OstreamAppender("console", &std::cout);
     appenderOut->setLayout(ptn);
 
-    /*打开日志文件*/
-    logFile.open("log/rollingfile.log", std::ios::app);
+    /*打开日志文件 - 使用绝对路径*/
+    std::string logPath = "/root/workSpace/myDev/CloudDisk/log/rollingfile.log";
+    std::cerr << "Log path: " << logPath << std::endl;
+    logFile.open(logPath, std::ios::app);
     if (!logFile.is_open()) {
         perror("Failed to open log file");
+        std::cerr << "Failed to open log file" << std::endl;
+    } else {
+        std::cerr << "Log file opened successfully" << std::endl;
     }
 
     /*设置日志级别并添加输出器*/
