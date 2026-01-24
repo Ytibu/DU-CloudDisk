@@ -1,38 +1,43 @@
 #include "MyLogger.hpp"
 #include <log4cpp/Category.hh>
 #include <log4cpp/Appender.hh>
-#include <log4cpp/FileAppender.hh>
 #include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/RollingFileAppender.hh>
 #include <log4cpp/Layout.hh>
 #include <log4cpp/PatternLayout.hh>
 #include <log4cpp/BasicLayout.hh>
 #include <log4cpp/Priority.hh>
+#include <fstream>
+
+// 日志文件流
+static std::ofstream logFile;
 
 MyLogger::MyLogger()
     : _root(log4cpp::Category::getRoot())
 {
-    auto ptn1 = new log4cpp::PatternLayout();
-    ptn1->setConversionPattern("%d %c [%p] - %m%n");
+    auto ptn = new log4cpp::PatternLayout();
+    ptn->setConversionPattern("%d %c [%p] - %m%n");
 
-    auto ptn2 = new log4cpp::PatternLayout();
-    ptn2->setConversionPattern("%d %c [%p] - %m%n");
-
-    /*创建两个appender，一个为通用输出流，一个为回滚文件输出，各自绑定一个布局样式*/
+    /*创建控制台输出器*/
     auto appenderOut = new log4cpp::OstreamAppender("console", &std::cout);
-    auto appenderRollingFile = new log4cpp::RollingFileAppender(
-        "log/", "rollingfile.log", 5 * 1024, 9);
-    appenderOut->setLayout(ptn1);
-    appenderRollingFile->setLayout(ptn2);
+    appenderOut->setLayout(ptn);
 
-    /*设置日志级别，一个记录器绑定两个输出器，减少多余创建的开销*/
+    /*打开日志文件*/
+    logFile.open("log/rollingfile.log", std::ios::app);
+    if (!logFile.is_open()) {
+        perror("Failed to open log file");
+    }
+
+    /*设置日志级别并添加输出器*/
     _root.setPriority(log4cpp::Priority::DEBUG);
     _root.addAppender(appenderOut);
-    _root.addAppender(appenderRollingFile);
 }
 
 MyLogger::~MyLogger()
 {
+    // 关闭日志文件
+    if (logFile.is_open()) {
+        logFile.close();
+    }
     log4cpp::Category::shutdown();
 }
 

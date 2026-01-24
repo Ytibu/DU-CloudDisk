@@ -7,12 +7,6 @@
 #include <cstdarg>
 using std::string;
 
-/**
- * 日志类
- * 单例模式：确保只有一个实例，并且提供全局访问点，使用静态方法获取实例
- * 宏定义：日志打印宏定义，方便调用
- */
-
 inline std::string format_message(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -40,24 +34,23 @@ public:
     // 模板函数声明
     template <typename... T>
     void warn(const char *msg, const T &...args);
-    
+
     template <typename... T>
     void debug(const char *msg, const T &...args);
-    
+
     template <typename... T>
     void info(const char *msg, const T &...args);
-    
+
     template <typename... T>
     void error(const char *msg, const T &...args);
-
 
     static MyLogger &getInstance();
 
 private:
-    MyLogger(); 
+    MyLogger();
     ~MyLogger();
-    MyLogger(const MyLogger &) = delete;    
-    MyLogger &operator=(const MyLogger&)=delete;    
+    MyLogger(const MyLogger &) = delete;
+    MyLogger &operator=(const MyLogger&)=delete;
 
 private:
     log4cpp::Category &_root;
