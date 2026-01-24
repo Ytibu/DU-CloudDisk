@@ -81,8 +81,9 @@ void CloudiskServer::loadUserRegisterModule()
             LOG_INFO("username:%s, password:%s\n", username.c_str(), password.c_str());
             //2. 对密码进行加密
             string salt("12345678");//这里应该是随机生成
-            string encodedPassword(crypt(password.c_str(), salt.c_str()));
-            LOG_INFO("encodedPassword:%s",  encodedPassword);
+            const char *encrypted = crypt(password.c_str(), salt.c_str());
+            string encodedPassword(encrypted ? encrypted : "");
+            LOG_INFO("encodedPassword:%s",  encodedPassword.c_str());
             //cout << "mi wen:" << encodedPassword << endl;
             //将用户信息存储到数据库MySQL中
             string mysqlurl("mysql://root:123450@localhost");

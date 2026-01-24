@@ -21,7 +21,7 @@ MyLogger::MyLogger()
     /*创建两个appender，一个为通用输出流，一个为回滚文件输出，各自绑定一个布局样式*/
     auto appenderOut = new log4cpp::OstreamAppender("console", &std::cout);
     auto appenderRollingFile = new log4cpp::RollingFileAppender(
-        "rollingfile", "rollingfile.log", 5 * 1024, 9);
+        "log/", "rollingfile.log", 5 * 1024, 9);
     appenderOut->setLayout(ptn1);
     appenderRollingFile->setLayout(ptn2);
 
