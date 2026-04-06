@@ -1,11 +1,11 @@
-#include "CloudiskServer.h"
+#include "CloudDiskServer.h"
 #include <iostream>
 
 int main()
 {
-    CloudiskServer cloudiskServer(1);
-    cloudiskServer.loadModules();
-    cloudiskServer.start(1234);
+    CloudDiskServer cloudDiskServer(1);
+    cloudDiskServer.loadModules();
+    cloudDiskServer.start(1234);
     return 0;
 }
 

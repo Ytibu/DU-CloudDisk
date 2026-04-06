@@ -1,48 +1,25 @@
 #include "MyLogger.hpp"
 #include <log4cpp/Category.hh>
-#include <log4cpp/Appender.hh>
-#include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/Layout.hh>
-#include <log4cpp/PatternLayout.hh>
-#include <log4cpp/BasicLayout.hh>
-#include <log4cpp/Priority.hh>
-#include <fstream>
-
-// 日志文件流
-static std::ofstream logFile;
+#include <log4cpp/PropertyConfigurator.hh>
+#include <stdexcept>
+#include <iostream>
 
 MyLogger::MyLogger()
     : _root(log4cpp::Category::getRoot())
 {
-    auto ptn = new log4cpp::PatternLayout();
-    ptn->setConversionPattern("%d %c [%p] - %m%n");
-
-    /*创建控制台输出器*/
-    auto appenderOut = new log4cpp::OstreamAppender("console", &std::cout);
-    appenderOut->setLayout(ptn);
-
-    /*打开日志文件 - 使用绝对路径*/
-    std::string logPath = "/root/workSpace/myDev/CloudDisk/log/rollingfile.log";
-    std::cerr << "Log path: " << logPath << std::endl;
-    logFile.open(logPath, std::ios::app);
-    if (!logFile.is_open()) {
-        perror("Failed to open log file");
-        std::cerr << "Failed to open log file" << std::endl;
-    } else {
-        std::cerr << "Log file opened successfully" << std::endl;
+    try {
+        /*从配置文件加载 log4cpp 配置*/
+        std::string configFile = "conf/log4cpp.properties";
+        log4cpp::PropertyConfigurator::configure(configFile);
+        std::cerr << "log4cpp 配置文件加载成功: " << configFile << std::endl;
+    } catch (log4cpp::ConfigureFailure& e) {
+        std::cerr << "log4cpp 配置失败: " << e.what() << std::endl;
+        throw std::runtime_error("Failed to configure log4cpp");
     }
-
-    /*设置日志级别并添加输出器*/
-    _root.setPriority(log4cpp::Priority::DEBUG);
-    _root.addAppender(appenderOut);
 }
 
 MyLogger::~MyLogger()
 {
-    // 关闭日志文件
-    if (logFile.is_open()) {
-        logFile.close();
-    }
     log4cpp::Category::shutdown();
 }
 

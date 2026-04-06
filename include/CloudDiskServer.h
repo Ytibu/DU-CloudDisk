@@ -1,17 +1,17 @@
-#ifndef __WD_CloudiskServer_HPP__ 
-#define __WD_CloudiskServer_HPP__ 
+#ifndef __WD_CloudDiskServer_HPP__ 
+#define __WD_CloudDiskServer_HPP__ 
 
 #include <workflow/WFFacilities.h>
 #include <wfrest/HttpServer.h>
 
-class CloudiskServer
+class CloudDiskServer
 {
 public:
-    CloudiskServer(int cnt) 
+    CloudDiskServer(int cnt) 
     : _waitGroup(cnt)
     {}
 
-    ~CloudiskServer() {}
+    ~CloudDiskServer() {}
 
     void start(unsigned short port);
 

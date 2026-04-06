@@ -1,13 +1,13 @@
 INCLUDES:=./  ./include ./src
 SRCS:=$(wildcard src/*.cc) 
-LIBS:=  -lwfrest -lworkflow -lssl -lcrypto -lcrypt -llog4cpp
+LIBS:=  -lwfrest -lworkflow -lssl -lcrypto -lcrypt -llog4cpp #-liconv
 
 # 提取src目录下的源文件并映射到build目录下的.o文件
 BUILD_DIR:=build
 BIN_DIR:=bin
 SOURCES:=$(wildcard src/*.cc)
 OBJECTS:=$(SOURCES:src/%.cc=$(BUILD_DIR)/%.o)
-SERVER:= $(BIN_DIR)/CloudiskServer
+SERVER:= $(BIN_DIR)/CloudDiskServer
 
 # 主程序目标
 $(SERVER): $(OBJECTS) | prepare_bin

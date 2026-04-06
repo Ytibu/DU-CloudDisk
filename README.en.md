@@ -14,7 +14,7 @@ This is a simple implementation of a cloud disk server, providing basic function
 
 ## Directory Structure
 
-- `CloudiskServer.cc` - Main server implementation
+- `CloudDiskServer.cc` - Main server implementation
 - `Hash.cc` - Hash generation utility
 - `Token.cc` - Token generation utility
 - `main.cc` - Program entry point
@@ -25,7 +25,7 @@ This is a simple implementation of a cloud disk server, providing basic function
 
 1. Ensure required dependency libraries are installed.
 2. Compile the project using the Makefile.
-3. Run the server: `./cloudisk_server`
+3. Run the server: `./cloudDisk_server`
 4. The server listens on port 8080 by default.
 
 ## Usage Examples

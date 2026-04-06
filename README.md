@@ -14,7 +14,7 @@
 
 ## 目录结构
 
-- `CloudiskServer.cc` - 主服务器实现
+- `CloudDiskServer.cc` - 主服务器实现
 - `Hash.cc` - 哈希生成工具
 - `Token.cc` - Token生成工具
 - `main.cc` - 程序入口
@@ -25,7 +25,7 @@
 
 1. 确保已安装必要的依赖库
 2. 使用Makefile编译项目
-3. 运行服务器：`./cloudisk_server`
+3. 运行服务器：`./cloudDisk_server`
 4. 服务器默认在8080端口监听
 
 ## 使用示例
